@@ -73,6 +73,9 @@ http://twitter.com/igaiga555/status/270020820951236608
 
 自分で実装して自分でビンゴできてさらに満足度が高かったです（不正はありません）
 
+http://twitter.com/june29/status/270007545085706240
+
+
 ![image](https://github.com/downloads/asonas/hat-bingo/IMG_0226.jpg)
 ![image](https://github.com/downloads/asonas/hat-bingo/IMG_0227.jpg)
 
