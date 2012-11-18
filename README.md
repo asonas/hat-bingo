@@ -1,261 +1,80 @@
-== Welcome to Rails
+ビンゴアプリケーション
 
-Rails is a web-application framework that includes everything needed to create
-database-backed web applications according to the Model-View-Control pattern.
-
-This pattern splits the view (also called the presentation) into "dumb"
-templates that are primarily responsible for inserting pre-built data in between
-HTML tags. The model contains the "smart" domain objects (such as Account,
-Product, Person, Post) that holds all the business logic and knows how to
-persist themselves to a database. The controller handles the incoming requests
-(such as Save New Account, Update Product, Show Post) by manipulating the model
-and directing data to the view.
-
-In Rails, the model is handled by what's called an object-relational mapping
-layer entitled Active Record. This layer allows you to present the data from
-database rows as objects and embellish these data objects with business logic
-methods. You can read more about Active Record in
-link:files/vendor/rails/activerecord/README.html.
-
-The controller and view are handled by the Action Pack, which handles both
-layers by its two parts: Action View and Action Controller. These two layers
-are bundled in a single package due to their heavy interdependence. This is
-unlike the relationship between the Active Record and Action Pack that is much
-more separate. Each of these packages can be used independently outside of
-Rails. You can read more about Action Pack in
-link:files/vendor/rails/actionpack/README.html.
+## 背景
+高専カンファレンス in 釧路の翌日に遠足イベントに参加して、泉屋本店に行ってスパカツを食べながらビンゴ大会をすることになりビンゴカードを配ることになったが、肝心のビンゴ本体がないということでハッカソン的に10分でつくったアプリケーションです。
 
 
-== Getting Started
+## 使い方
+ターミナルで
 
-1. At the command prompt, create a new Rails application:
-       <tt>rails new myapp</tt> (where <tt>myapp</tt> is the application name)
+```
+$ rails server
+```
 
-2. Change directory to <tt>myapp</tt> and start the web server:
-       <tt>cd myapp; rails server</tt> (run with --help for options)
+http://localhost:3000/bingo にアクセスすることで数字がランダムで表示されます
+下の数字は過去に出た数字の履歴です
+数字の履歴を消したい時はターミナル上で
 
-3. Go to http://localhost:3000/ and you'll see:
-       "Welcome aboard: You're riding Ruby on Rails!"
+```
+irb(main):001:0> Rails.cache.clear
+```
 
-4. Follow the guidelines to start developing your application. You can find
-the following resources handy:
+と叩くことでリセットできます。
 
-* The Getting Started Guide: http://guides.rubyonrails.org/getting_started.html
-* Ruby on Rails Tutorial Book: http://www.railstutorial.org/
+## できないこと
+このアプリケーションでできないことは
 
+- 過去に出た数字の除去
 
-== Debugging Rails
-
-Sometimes your application goes wrong. Fortunately there are a lot of tools that
-will help you debug it and get it back on the rails.
-
-First area to check is the application log files. Have "tail -f" commands
-running on the server.log and development.log. Rails will automatically display
-debugging and runtime information to these files. Debugging info will also be
-shown in the browser on requests from 127.0.0.1.
-
-You can also log your own messages directly into the log file from your code
-using the Ruby logger class from inside your controllers. Example:
-
-  class WeblogController < ActionController::Base
-    def destroy
-      @weblog = Weblog.find(params[:id])
-      @weblog.destroy
-      logger.info("#{Time.now} Destroyed Weblog ID ##{@weblog.id}!")
-    end
-  end
-
-The result will be a message in your log file along the lines of:
-
-  Mon Oct 08 14:22:29 +1000 2007 Destroyed Weblog ID #1!
-
-More information on how to use the logger is at http://www.ruby-doc.org/core/
-
-Also, Ruby documentation can be found at http://www.ruby-lang.org/. There are
-several books available online as well:
-
-* Programming Ruby: http://www.ruby-doc.org/docs/ProgrammingRuby/ (Pickaxe)
-* Learn to Program: http://pine.fm/LearnToProgram/ (a beginners guide)
-
-These two books will bring you up to speed on the Ruby language and also on
-programming in general.
+が実装されていません。
+なくても問題ありませんが、実際に使っていると何度か重複したので欲し機能です。
 
 
-== Debugger
+## 技術的なお話
+実際にみるコードは
 
-Debugger support is available through the debugger command when you start your
-Mongrel or WEBrick server with --debugger. This means that you can break out of
-execution at any point in the code, investigate and change the model, and then,
-resume execution! You need to install ruby-debug to run the server in debugging
-mode. With gems, use <tt>sudo gem install ruby-debug</tt>. Example:
+```
+app/
+├── controllers
+│   └── welcome_controller.rb
+└── views
+    └── welcome
+        └── index.html.erb
+```
 
-  class WeblogController < ActionController::Base
-    def index
-      @posts = Post.all
-      debugger
-    end
-  end
+これだけです。
 
-So the controller will accept the action, run the first line, then present you
-with a IRB prompt in the server window. Here you can do things like:
+### 特記事項
 
-  >> @posts.inspect
-  => "[#<Post:0x14a6be8
-          @attributes={"title"=>nil, "body"=>nil, "id"=>"1"}>,
-       #<Post:0x14a6620
-          @attributes={"title"=>"Rails", "body"=>"Only ten..", "id"=>"2"}>]"
-  >> @posts.first.title = "hello from a debugger"
-  => "hello from a debugger"
+最初は実装時間5分で、ランダムに数字を表示させるアプリケーションをつくったのですが、「数字の履歴があるほうがいい」という顧客の要望をうけて、`Rails.cache`を使用してそこに過去の数字の配列を格納するようにしました。
 
-...and even better, you can examine how your runtime objects actually work:
+`Rails.cache`を使った理由ですが、ActiveRecordなどのORマッパを使うのは、migrationファイルを作成したりモデルにコードを書いたりして、実現したい機能とそれにかかる時間などのコストが見合わなくて、ちょっと大変かなと思ったからです。
 
-  >> f = @posts.first
-  => #<Post:0x13630c4 @attributes={"title"=>nil, "body"=>nil, "id"=>"1"}>
-  >> f.
-  Display all 152 possibilities? (y or n)
+配列を`Rails.cache.write("nums", @nums)`として突っ込むのは実際便利で、DBを使わなくても履歴を実装することができました。
 
-Finally, when you're ready to resume execution, you can enter "cont".
+デフォルトのexpired_inの時間がわからなくてキャッシュに書き込むときに`:expired_in => 2.hours`としてます。
 
+## 他の皆様の実装
 
-== Console
+万葉社のigaigaさんの実装はこちら
+http://twitter.com/igaiga555/status/270020820951236608
 
-The console is a Ruby shell, which allows you to interact with your
-application's domain model. Here you'll have all parts of the application
-configured, just like it is when the application is running. You can inspect
-domain models, change values, and save to the database. Starting the script
-without arguments will launch it in the development environment.
+- この実装はとてもスマートで好きです。
+- ターミナルだけで解決するという発想はあったのですが、やり方がわからなかったので、すごいと思った。
 
-To start the console, run <tt>rails console</tt> from the application
-directory.
+同じくその場にいれJavascriptでビンゴを実装方法(リポジトリのURLはよ)
 
-Options:
-
-* Passing the <tt>-s, --sandbox</tt> argument will rollback any modifications
-  made to the database.
-* Passing an environment name as an argument will load the corresponding
-  environment. Example: <tt>rails console production</tt>.
-
-To reload your controllers and models after launching the console run
-<tt>reload!</tt>
-
-More information about irb can be found at:
-link:http://www.rubycentral.org/pickaxe/irb.html
+- 残念ながらビンゴ開始までには間に合いませんでしたが、重複の除去を実装していたり、履歴はconsole.logを使って表示していて必要な時だけコンソールを開けばよくて便利感高い。
 
 
-== dbconsole
+## まとめ
+突発的に、ビンゴ大会をやるということでびっくりして、しかもビンゴ本体がないという事にさらにびっくりしましたが、
+なんとか全員分のスパカツが届く前に実装できてとても嬉しかったのと同時に楽しかったです（高まりすぎて、スパカツ食べるときに腕がプルプルして大変だった）
 
-You can go to the command line of your database directly through <tt>rails
-dbconsole</tt>. You would be connected to the database with the credentials
-defined in database.yml. Starting the script without arguments will connect you
-to the development database. Passing an argument will connect you to a different
-database, like <tt>rails dbconsole production</tt>. Currently works for MySQL,
-PostgreSQL and SQLite 3.
+自分で実装して自分でビンゴできてさらに満足度が高かったです（不正はありません）
 
-== Description of Contents
+![image](https://github.com/downloads/asonas/hat-bingo/IMG_0226.jpg)
+![image](https://github.com/downloads/asonas/hat-bingo/IMG_0227.jpg)
 
-The default directory structure of a generated Ruby on Rails application:
 
-  |-- app
-  |   |-- assets
-  |       |-- images
-  |       |-- javascripts
-  |       `-- stylesheets
-  |   |-- controllers
-  |   |-- helpers
-  |   |-- mailers
-  |   |-- models
-  |   `-- views
-  |       `-- layouts
-  |-- config
-  |   |-- environments
-  |   |-- initializers
-  |   `-- locales
-  |-- db
-  |-- doc
-  |-- lib
-  |   `-- tasks
-  |-- log
-  |-- public
-  |-- script
-  |-- test
-  |   |-- fixtures
-  |   |-- functional
-  |   |-- integration
-  |   |-- performance
-  |   `-- unit
-  |-- tmp
-  |   |-- cache
-  |   |-- pids
-  |   |-- sessions
-  |   `-- sockets
-  `-- vendor
-      |-- assets
-          `-- stylesheets
-      `-- plugins
-
-app
-  Holds all the code that's specific to this particular application.
-
-app/assets
-  Contains subdirectories for images, stylesheets, and JavaScript files.
-
-app/controllers
-  Holds controllers that should be named like weblogs_controller.rb for
-  automated URL mapping. All controllers should descend from
-  ApplicationController which itself descends from ActionController::Base.
-
-app/models
-  Holds models that should be named like post.rb. Models descend from
-  ActiveRecord::Base by default.
-
-app/views
-  Holds the template files for the view that should be named like
-  weblogs/index.html.erb for the WeblogsController#index action. All views use
-  eRuby syntax by default.
-
-app/views/layouts
-  Holds the template files for layouts to be used with views. This models the
-  common header/footer method of wrapping views. In your views, define a layout
-  using the <tt>layout :default</tt> and create a file named default.html.erb.
-  Inside default.html.erb, call <% yield %> to render the view using this
-  layout.
-
-app/helpers
-  Holds view helpers that should be named like weblogs_helper.rb. These are
-  generated for you automatically when using generators for controllers.
-  Helpers can be used to wrap functionality for your views into methods.
-
-config
-  Configuration files for the Rails environment, the routing map, the database,
-  and other dependencies.
-
-db
-  Contains the database schema in schema.rb. db/migrate contains all the
-  sequence of Migrations for your schema.
-
-doc
-  This directory is where your application documentation will be stored when
-  generated using <tt>rake doc:app</tt>
-
-lib
-  Application specific libraries. Basically, any kind of custom code that
-  doesn't belong under controllers, models, or helpers. This directory is in
-  the load path.
-
-public
-  The directory available for the web server. Also contains the dispatchers and the
-  default HTML files. This should be set as the DOCUMENT_ROOT of your web
-  server.
-
-script
-  Helper scripts for automation and generation.
-
-test
-  Unit and functional tests along with fixtures. When using the rails generate
-  command, template test files will be generated for you and placed in this
-  directory.
-
-vendor
-  External libraries that the application depends on. Also includes the plugins
-  subdirectory. If the app has frozen rails, those gems also go here, under
-  vendor/rails/. This directory is in the load path.
+g# ありがとうございました。
